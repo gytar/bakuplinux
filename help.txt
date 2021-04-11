@@ -1,0 +1,17 @@
+AWESOME BACK-UP 
+
+This is a program that will help you to back up your system in a .tar.gz file 
+
+backup [COMMANDS]
+or
+python3 /path/to/file/backup.py [COMMANDS]
+
+    --choose  / -c  => to change the destination folder or device
+    --help    / -h  => display this help message
+    --version / -v  => show version
+    --show    / -s  => show [DESTINATION] then [ORIGIN] directories
+
+default ORIGIN directory: /home/[USER]
+default DESTINATION directoty: NONE
+Create an alias in your ~/.bashrc or ~/.bash_aliases file 
+
