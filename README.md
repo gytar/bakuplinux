@@ -44,4 +44,5 @@ default DESTINATION directoty: NONE
 
 ## TODO
 
-Create an alias in your ~/.bashrc or ~/.bash_aliases file 
+* Create an alias in your ~/.bashrc or ~/.bash_aliases file
+* Add comments in script 

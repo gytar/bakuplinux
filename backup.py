@@ -3,6 +3,10 @@
 import os
 import sys
 import getpass
+from datetime import datetime
+from alive_progress import alive_bar
+from time import sleep
+
 
 folders=""
 backup_path=""
@@ -24,37 +28,41 @@ def yes_or_no(question):
         	print("the answer is invalid")
 
 def help():
-    os.system(f'cat {home}/backup/help.txt')
+    os.system(f'cat {home}/.scripts/backup/help.txt')
 
 def version():
-    os.system(f'cat {home}/backup/version.txt')
+    os.system(f'cat {home}/.scripts/backup/version.txt')
 
 def show_data():
-    with open(f"{home}/backup/backupdata.conf", "r") as f:
+    with open(f"{home}/.scripts/backup/backupdata.conf", "r") as f:
         print("Destination directory: ", end='')
         print(f.readline(), end="")
-        print("Origin directory: ", end='')
+        print("Origin directory: ", end="")
         print(f.readline())
         
 
 def search_usb(): 
+    # fonction pour trouver les clés USB branchées sur l'appareil /  
+    # Retourne un liste des noms. 
     global usb_file, home, usb_names
     # requete pour avoir les chemins des clés  usb
     usb_query = "df -h 2> /dev/null | awk '{for(i=6; i<=NF;++i)printf $i\"\"FS; print \"\"}' | awk '/media/ {print $0}'"
     
     
-    f = open(f"{home}/backup/{usb_file}", 'w+')
+    f = open(f"{home}/.scripts/backup/{usb_file}", 'w+')
 
-    os.system(f"{usb_query} >> {home}/backup/{usb_file}")
-    
+    # on met les chemins des clés USB dans un fichier .conf
+    os.system(f"{usb_query} >> {home}/.scripts/backup/{usb_file}")
+    # puis on en fait une liste
     all_usbs = f.read()
     all_usbs = str.split(all_usbs, ' \n')
-    all_usbs = [string for string in all_usbs if string != ""]
+    all_usbs = [string for string in all_usbs if string != ""] # il se peut qu'il y ai des éléments "", on les supprime
     f.close()
     for i in range(len(all_usbs)):
         an_array = all_usbs[i].split("/")
+        # on garde les noms pour les afficher.
         usb_names.append(an_array[-1])
-        # all_usbs[i] = all_usbs[i].replace(" ", "\ ")
+        # aTODO: trouver une solution avec les espaces
     
     return all_usbs
     
@@ -62,20 +70,24 @@ def search_usb():
 def search_values(): 
     global folders, backup_path, home
     
-    f = open(f"{home}/backup/backupdata.conf", 'r')
-    data = f.read()
-    f.close
-    if os.path.getsize(f'{home}/backup/backupdata.conf') == 0:
-        f = open(f'{home}/backup/backupdata.conf', 'a') 
+    # S'il n'y a rien dans le fichier alors on utilise les valeurs pas défault. 
+    if os.path.getsize(f'{home}/.scripts/backup/backupdata.conf') <= 1:
+        f = open(f'{home}/.scripts/backup/backupdata.conf', 'a') 
         backup_path="NONE"
         folders=home
         f.close()
+    # Sinon, on récupère les données dans le fichier. 
     else: 
+        f = open(f"{home}/.scripts/backup/backupdata.conf", 'r')
+        data = f.read()
+        f.close
         data = str.split(data, "\n")
         backup_path=data[0]
         folders=data[1]
 
 def change(): 
+    # Fonction qui permet de changer les chemins d'origine et destination. 
+
     global folders, backup_path, usb_names
 
     fake_backup = backup_path
@@ -83,13 +95,14 @@ def change():
     usb_paths = search_usb()
 
     
-    f = open(f"{home}/backup/backupdata.conf", "w+")
+    f = open(f"{home}/.scripts/backup/backupdata.conf", "w+")
     
+    print(f'Your actual origin path is: {folders}')
+    print(f'Your actual destination path is: {backup_path}')
+    print("")
     print("You are about to change origin and destination paths: ")
     if yes_or_no("Continue?"):
-        print(f'Your actual origin path is: {folders}')
-        print(f'Your actual destination path is: {backup_path}')
-        print('')
+        
         print('Where do you want to back up ?')
         print('    1) USB drive (media/...)')
         print('    2) Somewhere else')
@@ -103,7 +116,7 @@ def change():
                     dis_choice = i+1
                     print(f'    {dis_choice}) {usb_names[i]}')
 
-                choice = int(input("Which one will you choose ? ")) - 1
+                choice = int(input("Which one will you choose ? ")) - 1 
                 backup_path = usb_paths[choice]
                 print("")
                 if yes_or_no(f"you have chosen {usb_names[choice]}, are you sure ?"):
@@ -134,30 +147,30 @@ def change():
             datatowrite = str(backup_path) + "\n" + str(folders)
             f.write(datatowrite)
             f.close()
-            
+        print("Changes accepted")
+        print(f"New origin folder: {folders}")
+        print(f"New destination folder: {backup_path}")        
     else:
         print("Ok bye")
 
-    print("Changes accepted")
-    print(f"New origin folder: {folders}")
-    print(f"New destination folder: {backup_path}")
-
-
+    
 def backingup():
     print(home)
     print("You're about to do a backup")
     if yes_or_no("Continue?"): 
         if os.path.exists(f'{backup_path}'):
-            os.system("echo 'backup in progress'")
-            if os.path.exists(f'{backup_path}/{backup}'):
-                os.system(f'rm -r {backup_path}/{backup}')
-            else: 
-                os.system(f'tar -cvzf {backup} {folders}')
-                os.system(f'mv {backup} {backup_path}')
-            os.system("echo 'backup done!'")
+            print('Backup in progress')
+            if os.path.exists(f'{backup_path}/{getpass.getuser}'):
+                os.system(f'rsync -a --progress --delete {folders} {backup_path}')
+                print(f"Archive created and successfully moved from {folders} to {backup_path}")
+                print("Backup done!")
+            else:
+                os.system(f'rsync -a --progress {folders} {backup_path}')
+                print(f"Archive created and successfully moved from {folders} to {backup_path}")
+                print("Backup done!")
         else:
-            os.system('echo "error: USB not plugged or backup path not found"')
-            os.system(f'echo "path {backup_path} not found"')
+            print("Error: USB not plugged or backup path not found")
+            print(f"    Path {backup_path} not found")
     else:
         print("ok bye")
 
@@ -170,7 +183,7 @@ def main():
         if sys.argv[1] == "-h" or sys.argv[1] == "--help":
             help()
             sys.exit(0)
-        elif sys.argv[1] == "-c" or sys.argv[1] == "--choose":
+        elif sys.argv[1] == "-c" or sys.argv[1] == "--change":
             change()
             sys.exit(0)
         elif sys.argv[1] == "-v" or sys.argv[1] == "--version":
