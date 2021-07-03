@@ -1,6 +1,6 @@
 AWESOME BACK-UP 
 
-This is a program that will help you to back up your system in a .tar.gz file 
+This is a program that will help you to back up your system in an external device with rsync 
 
 backup [OPTIONS]
 or
@@ -8,11 +8,11 @@ python3 /path/to/file/backup.py [OPTIONS]
 
     without option  => will do your backup
     --change  / -c  => to change the destination folder or device
-    --help    / -h  => display this help message
+    --help    / -h  => display this help message and exit with code 0
     --version / -v  => show version
     --show    / -s  => show [DESTINATION] then [ORIGIN] directories
 
 default ORIGIN directory: /home/[USER]
-default DESTINATION directoty: NONE
+default DESTINATION directory: NONE
 Create an alias in your ~/.bashrc or ~/.bash_aliases file 
 

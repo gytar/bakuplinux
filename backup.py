@@ -111,6 +111,7 @@ def change():
         print('')
         if int(choice) == 1 or int(choice == ""):
             if(len(usb_names) >= 1):
+                # show devices
                 print("Here are all your devices:")
                 for i in range(len(usb_names)):
                     dis_choice = i+1
@@ -161,11 +162,11 @@ def backingup():
         if os.path.exists(f'{backup_path}'):
             print('Backup in progress')
             if os.path.exists(f'{backup_path}/{getpass.getuser}'):
-                os.system(f'rsync -a --progress --delete {folders} {backup_path}')
+                os.system(f'rsync -ah --progress {folders} {backup_path}')
                 print(f"Archive created and successfully moved from {folders} to {backup_path}")
                 print("Backup done!")
             else:
-                os.system(f'rsync -a --progress {folders} {backup_path}')
+                os.system(f'rsync -ah --progress {folders} {backup_path}')
                 print(f"Archive created and successfully moved from {folders} to {backup_path}")
                 print("Backup done!")
         else:
